@@ -5,4 +5,4 @@ version=1.0
 loader=java
 dependencies=Base
 pack=cigarette_vending_01a
-tiledef=newtiledefinitions 100
+tiledef=newtiledefinitions 2000

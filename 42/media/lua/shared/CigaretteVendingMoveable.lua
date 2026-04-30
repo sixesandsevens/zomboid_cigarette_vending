@@ -1,6 +1,7 @@
 CigaretteVending = CigaretteVending or {}
 
-CigaretteVending.WorldSprite = CigaretteVending.WorldSprite or "cigarette_vending_01a_9"
+CigaretteVending.WorldSprite = CigaretteVending.WorldSprite or "cigarette_vending_01a_18"
+CigaretteVending.ScriptItem = CigaretteVending.ScriptItem or "Base.cigarette_vending_01a_18"
 CigaretteVending.AutoGiveDebugMachine = true
 CigaretteVending.AutoGiveDone = CigaretteVending.AutoGiveDone or {}
 
@@ -21,18 +22,21 @@ function CigaretteVending.createMoveable(spriteName)
         print("CigaretteVending: ISMoveableSpriteProps unavailable")
     end
 
-    local item = instanceItem("Moveables.Moveable")
+    local item = instanceItem(CigaretteVending.ScriptItem)
     if not item then
-        print("CigaretteVending: failed to create Moveables.Moveable")
+        print("CigaretteVending: failed to create", CigaretteVending.ScriptItem)
         return nil
     end
 
     local ok = false
-    ok = item:ReadFromWorldSprite(spriteName)
+    if item.ReadFromWorldSprite then
+        ok = item:ReadFromWorldSprite(spriteName)
+    end
 
     item:getModData().CigaretteVendingWorldSprite = spriteName
 
-    print("CigaretteVending: created moveable item", item:getFullType(), item:getDisplayName(), "worldSprite=", tostring(item:getWorldSprite()), "readFromSprite=", tostring(ok), "instanceofMoveable=", tostring(instanceof(item, "Moveable")))
+    local worldSprite = item.getWorldSprite and item:getWorldSprite() or nil
+    print("CigaretteVending: created moveable item", item:getFullType(), item:getDisplayName(), "worldSprite=", tostring(worldSprite), "readFromSprite=", tostring(ok), "instanceofMoveable=", tostring(instanceof(item, "Moveable")))
     return item
 end
 
@@ -64,7 +68,8 @@ function CigaretteVending.giveMoveable(playerIndex, spriteName)
         if sendAddItemToContainer then
             sendAddItemToContainer(player:getInventory(), item)
         end
-        print("CigaretteVending: added moveable to inventory", item:getFullType(), tostring(item:getWorldSprite()))
+        local worldSprite = item.getWorldSprite and item:getWorldSprite() or nil
+        print("CigaretteVending: added moveable to inventory", item:getFullType(), tostring(worldSprite))
     end
     return item
 end
@@ -127,15 +132,10 @@ end
 CVGiveMachine = CigaretteVending.giveMoveable
 CVInspectVending = CigaretteVending.inspectVendingItems
 
-local cigaretteVendingTickCount = 0
-local function cigaretteVendingOnTick()
-    cigaretteVendingTickCount = cigaretteVendingTickCount + 1
-    if cigaretteVendingTickCount >= 120 then
-        Events.OnTick.Remove(cigaretteVendingOnTick)
-        CigaretteVending.autoGiveMoveable(0)
-    end
+local function cigaretteVendingOnGameStart()
+    CigaretteVending.autoGiveMoveable(0)
 end
 
-Events.OnTick.Add(cigaretteVendingOnTick)
+Events.OnGameStart.Add(cigaretteVendingOnGameStart)
 
 print("CigaretteVending moveable helpers loaded")
