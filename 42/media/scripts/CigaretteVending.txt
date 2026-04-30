@@ -1,0 +1,12 @@
+module CigaretteVending
+{
+    item CigaretteVendingMachine
+    {
+        DisplayName = Cigarette Vending Machine,
+        DisplayCategory = Furniture,
+        ItemType = base:moveable,
+        Icon = CigaretteVendingMachine,
+        Weight = 20.0,
+        WorldObjectSprite = cigarette_vending_01a_9,
+    }
+}

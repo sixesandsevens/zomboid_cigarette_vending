@@ -1,0 +1,2 @@
+-- Server-side logic for Cigarette Vending Machines
+-- TODO: add vending machine spawning, item dispensing, and persistence.

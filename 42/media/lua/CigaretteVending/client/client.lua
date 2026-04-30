@@ -1,0 +1,2 @@
+-- Client-side logic for Cigarette Vending Machines
+-- TODO: add UI interaction, vending machine animations, and client events.
