@@ -5,8 +5,8 @@ local ashboroCigsDistribution = {
     ignoreZombieDensity = true,
     rolls = 4,
     items = {
-        "Cigarettes", 20,
-        "Cigarettes", 20,
+        "CigarettePack", 20,
+        "CigarettePack", 20,
         "Lighter", 6,
         "Matches", 8,
         "Money", 4,
@@ -14,7 +14,7 @@ local ashboroCigsDistribution = {
     junk = {
         rolls = 1,
         items = {
-            "Cigarettes", 4,
+            "CigarettePack", 4,
         }
     }
 }
@@ -22,8 +22,8 @@ local ashboroCigsDistribution = {
 ProceduralDistributions.list.AshboroCigs = {
     rolls = 4,
     items = {
-        "Base.Cigarettes", 20,
-        "Base.Cigarettes", 20,
+        "Base.CigarettePack", 20,
+        "Base.CigarettePack", 20,
         "Base.Lighter", 6,
         "Base.Matches", 8,
         "Base.Money", 4,
@@ -31,7 +31,7 @@ ProceduralDistributions.list.AshboroCigs = {
     junk = {
         rolls = 1,
         items = {
-            "Base.Cigarettes", 4,
+            "Base.CigarettePack", 4,
         }
     }
 }
@@ -61,7 +61,7 @@ local function fillAshboroCigsFallback(roomName, containerType, container)
 
     local cigaretteCount = 1 + ZombRand(4)
     for _ = 1, cigaretteCount do
-        addOne(container, "Base.Cigarettes")
+        addOne(container, "Base.CigarettePack")
     end
 
     if ZombRand(100) < 35 then

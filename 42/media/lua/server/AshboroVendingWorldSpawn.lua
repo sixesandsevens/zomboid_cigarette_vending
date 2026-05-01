@@ -5,21 +5,30 @@ local WorldSpawn = CigaretteVending.WorldSpawn
 
 WorldSpawn.Enabled = WorldSpawn.Enabled ~= false
 WorldSpawn.Debug = WorldSpawn.Debug ~= false
-WorldSpawn.ReplaceChance = WorldSpawn.ReplaceChance or 0
+WorldSpawn.ReplaceChance = WorldSpawn.ReplaceChance or 35
 WorldSpawn.ProcessedFlag = WorldSpawn.ProcessedFlag or "AshboroCigsChecked"
+WorldSpawn.ObjectProcessedFlag = WorldSpawn.ObjectProcessedFlag or "AshboroCigsObjectChecked"
 
 WorldSpawn.VanillaVendingSprites = WorldSpawn.VanillaVendingSprites or {
     ["location_shop_accessories_01_16"] = true,
     ["location_shop_accessories_01_17"] = true,
     ["location_shop_accessories_01_18"] = true,
     ["location_shop_accessories_01_19"] = true,
+    ["location_shop_accessories_01_28"] = true,
+    ["location_shop_accessories_01_29"] = true,
+    ["location_shop_accessories_01_30"] = true,
+    ["location_shop_accessories_01_31"] = true,
 }
 
 WorldSpawn.Replacements = WorldSpawn.Replacements or {
     ["location_shop_accessories_01_16"] = "cigarette_vending_01a_18",
     ["location_shop_accessories_01_17"] = "cigarette_vending_01a_19",
-    ["location_shop_accessories_01_18"] = "cigarette_vending_01a_30",
-    ["location_shop_accessories_01_19"] = "cigarette_vending_01a_31",
+    ["location_shop_accessories_01_18"] = "cigarette_vending_01a_18",
+    ["location_shop_accessories_01_19"] = "cigarette_vending_01a_19",
+    ["location_shop_accessories_01_28"] = "cigarette_vending_01a_30",
+    ["location_shop_accessories_01_29"] = "cigarette_vending_01a_31",
+    ["location_shop_accessories_01_30"] = "cigarette_vending_01a_30",
+    ["location_shop_accessories_01_31"] = "cigarette_vending_01a_31",
 }
 
 local function debugLog(...)
@@ -46,7 +55,7 @@ local function fillAshboroContainer(container)
 
     local cigaretteCount = 1 + ZombRand(4)
     for _ = 1, cigaretteCount do
-        container:AddItem("Base.Cigarettes")
+        container:AddItem("Base.CigarettePack")
     end
 
     if ZombRand(100) < 35 then
@@ -245,6 +254,10 @@ local function scanSquare(square)
         local newSprite = spriteName and WorldSpawn.Replacements[spriteName] or nil
 
         if newSprite then
+            if obj.getModData and obj:getModData()[WorldSpawn.ObjectProcessedFlag] then
+                return
+            end
+
             debugLog(
                 "Found vanilla vending machine",
                 spriteName,
@@ -261,6 +274,9 @@ local function scanSquare(square)
                 end
 
                 md[WorldSpawn.ProcessedFlag] = true
+                if obj.getModData then
+                    obj:getModData()[WorldSpawn.ObjectProcessedFlag] = true
+                end
 
                 if shouldReplace() then
                     replaceObject(square, obj, spriteName, newSprite)
