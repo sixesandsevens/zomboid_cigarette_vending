@@ -1,7 +1,7 @@
 CigaretteVending = CigaretteVending or {}
 
 function CigaretteVending.inspectSprite(spriteName)
-    spriteName = spriteName or CigaretteVending.WorldSprite or "cigarette_vending_01a_18"
+    spriteName = spriteName or CigaretteVending.WorldSprite or "cigarette_vending_ashboro_18"
 
     if not ISMoveableSpriteProps then
         pcall(require, "Moveables/ISMoveableSpriteProps")

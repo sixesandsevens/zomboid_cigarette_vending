@@ -21,14 +21,14 @@ WorldSpawn.VanillaVendingSprites = WorldSpawn.VanillaVendingSprites or {
 }
 
 WorldSpawn.Replacements = WorldSpawn.Replacements or {
-    ["location_shop_accessories_01_16"] = "cigarette_vending_01a_18",
-    ["location_shop_accessories_01_17"] = "cigarette_vending_01a_19",
-    ["location_shop_accessories_01_18"] = "cigarette_vending_01a_18",
-    ["location_shop_accessories_01_19"] = "cigarette_vending_01a_19",
-    ["location_shop_accessories_01_28"] = "cigarette_vending_01a_30",
-    ["location_shop_accessories_01_29"] = "cigarette_vending_01a_31",
-    ["location_shop_accessories_01_30"] = "cigarette_vending_01a_30",
-    ["location_shop_accessories_01_31"] = "cigarette_vending_01a_31",
+    ["location_shop_accessories_01_16"] = "cigarette_vending_ashboro_18",
+    ["location_shop_accessories_01_17"] = "cigarette_vending_ashboro_19",
+    ["location_shop_accessories_01_18"] = "cigarette_vending_ashboro_18",
+    ["location_shop_accessories_01_19"] = "cigarette_vending_ashboro_19",
+    ["location_shop_accessories_01_28"] = "cigarette_vending_ashboro_30",
+    ["location_shop_accessories_01_29"] = "cigarette_vending_ashboro_31",
+    ["location_shop_accessories_01_30"] = "cigarette_vending_ashboro_30",
+    ["location_shop_accessories_01_31"] = "cigarette_vending_ashboro_31",
 }
 
 local function debugLog(...)

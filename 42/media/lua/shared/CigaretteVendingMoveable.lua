@@ -1,7 +1,7 @@
 CigaretteVending = CigaretteVending or {}
 
-CigaretteVending.WorldSprite = CigaretteVending.WorldSprite or "cigarette_vending_01a_18"
-CigaretteVending.ScriptItem = CigaretteVending.ScriptItem or "Base.cigarette_vending_01a_18"
+CigaretteVending.WorldSprite = CigaretteVending.WorldSprite or "cigarette_vending_ashboro_18"
+CigaretteVending.ScriptItem = CigaretteVending.ScriptItem or "Base.cigarette_vending_ashboro_18"
 CigaretteVending.AutoGiveDebugMachine = false
 CigaretteVending.AutoGiveDone = CigaretteVending.AutoGiveDone or {}
 
