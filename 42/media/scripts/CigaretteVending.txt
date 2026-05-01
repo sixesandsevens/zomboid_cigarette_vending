@@ -1,15 +1,5 @@
 module Base
 {
-    item cigarette_vending_01a_9
-    {
-        DisplayName = Cigarette Vending Machine,
-        DisplayCategory = Furniture,
-        ItemType = base:moveable,
-        Icon = CigaretteVendingMachine,
-        Weight = 20.0,
-        WorldObjectSprite = cigarette_vending_01a_18,
-    }
-
     item cigarette_vending_01a_18
     {
         DisplayName = Cigarette Vending Machine,
@@ -28,5 +18,25 @@ module Base
         Icon = CigaretteVendingMachine,
         Weight = 20.0,
         WorldObjectSprite = cigarette_vending_01a_19,
+    }
+
+    item cigarette_vending_01a_30
+    {
+        DisplayName = Cigarette Vending Machine,
+        DisplayCategory = Hidden,
+        ItemType = base:moveable,
+        Icon = CigaretteVendingMachine,
+        Weight = 20.0,
+        WorldObjectSprite = cigarette_vending_01a_30,
+    }
+
+    item cigarette_vending_01a_31
+    {
+        DisplayName = Cigarette Vending Machine,
+        DisplayCategory = Hidden,
+        ItemType = base:moveable,
+        Icon = CigaretteVendingMachine,
+        Weight = 20.0,
+        WorldObjectSprite = cigarette_vending_01a_31,
     }
 }
