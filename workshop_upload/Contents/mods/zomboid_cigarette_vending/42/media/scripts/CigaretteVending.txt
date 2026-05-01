@@ -1,0 +1,42 @@
+module Base
+{
+    item cigarette_vending_ashboro_18
+    {
+        DisplayName = Cigarette Vending Machine,
+        DisplayCategory = Furniture,
+        ItemType = base:moveable,
+        Icon = CigaretteVendingMachine,
+        Weight = 20.0,
+        WorldObjectSprite = cigarette_vending_ashboro_18,
+    }
+
+    item cigarette_vending_ashboro_19
+    {
+        DisplayName = Cigarette Vending Machine,
+        DisplayCategory = Furniture,
+        ItemType = base:moveable,
+        Icon = CigaretteVendingMachine,
+        Weight = 20.0,
+        WorldObjectSprite = cigarette_vending_ashboro_19,
+    }
+
+    item cigarette_vending_ashboro_30
+    {
+        DisplayName = Cigarette Vending Machine,
+        DisplayCategory = Hidden,
+        ItemType = base:moveable,
+        Icon = CigaretteVendingMachine,
+        Weight = 20.0,
+        WorldObjectSprite = cigarette_vending_ashboro_30,
+    }
+
+    item cigarette_vending_ashboro_31
+    {
+        DisplayName = Cigarette Vending Machine,
+        DisplayCategory = Hidden,
+        ItemType = base:moveable,
+        Icon = CigaretteVendingMachine,
+        Weight = 20.0,
+        WorldObjectSprite = cigarette_vending_ashboro_31,
+    }
+}

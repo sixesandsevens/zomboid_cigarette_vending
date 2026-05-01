@@ -1,0 +1,14 @@
+version=1
+title=Ashboro Cigarette Vending Machines
+description=Adds Ashboro cigarette vending machines to Project Zomboid Build 42.
+description=
+description=Features:
+description=
+description=Machines can appear where vanilla vending machines spawn
+description=Moveable like furniture
+description=Contains cigarette-related loot
+description=Includes custom Ashboro vending machine art
+description=
+description=Mod ID: CigaretteVending
+tags=Build 42;Items;Map;Realistic
+visibility=private
