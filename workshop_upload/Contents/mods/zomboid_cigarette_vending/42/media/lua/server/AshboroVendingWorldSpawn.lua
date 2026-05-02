@@ -5,7 +5,7 @@ local WorldSpawn = CigaretteVending.WorldSpawn
 
 WorldSpawn.Enabled = WorldSpawn.Enabled ~= false
 WorldSpawn.Debug = WorldSpawn.Debug == true
-WorldSpawn.SpawnBesideChance = WorldSpawn.SpawnBesideChance or 30
+WorldSpawn.SpawnBesideChance = WorldSpawn.SpawnBesideChance or 35
 WorldSpawn.ReplaceChance = WorldSpawn.ReplaceChance or 0
 
 -- Per-location tuning. These keep the mod flavorful without turning every soda machine into Ashboro.
@@ -66,6 +66,65 @@ local function debugLog(...)
         print("[CigaretteVending.WorldSpawn]", ...)
     end
 end
+
+local SandboxKeywordOptions = {
+    BarSpawnChance = "bar",
+    LiquorSpawnChance = "liquor",
+    GasSpawnChance = "gas",
+    ConvenienceSpawnChance = "convenience",
+    MarketSpawnChance = "market",
+    GrocerySpawnChance = "grocery",
+    StoreSpawnChance = "store",
+}
+
+local function clampChance(value, fallback)
+    local chance = tonumber(value)
+    if not chance then
+        return fallback
+    end
+
+    if chance < 0 then
+        return 0
+    end
+    if chance > 100 then
+        return 100
+    end
+
+    return chance
+end
+
+local function getSandboxOptions()
+    if not SandboxVars then
+        return nil
+    end
+
+    return SandboxVars.AshboroCigaretteVending
+end
+
+local function applySandboxOptions()
+    local options = getSandboxOptions()
+    if not options then
+        return
+    end
+
+    if options.EnableWorldSpawns ~= nil then
+        WorldSpawn.Enabled = options.EnableWorldSpawns == true
+    end
+
+    WorldSpawn.SpawnBesideChance = clampChance(options.BaseSpawnChance, WorldSpawn.SpawnBesideChance)
+    WorldSpawn.ReplaceChance = clampChance(options.ReplaceChance, WorldSpawn.ReplaceChance)
+
+    for optionName, keyword in pairs(SandboxKeywordOptions) do
+        if options[optionName] ~= nil then
+            WorldSpawn.SpawnChanceByRoomKeyword[keyword] = clampChance(
+                options[optionName],
+                WorldSpawn.SpawnChanceByRoomKeyword[keyword]
+            )
+        end
+    end
+end
+
+applySandboxOptions()
 
 local function getSpriteName(obj)
     if not obj or not obj.getSprite or not obj:getSprite() then
@@ -384,16 +443,19 @@ local function isNoSpawnLocation(square)
 end
 
 local function getEffectiveSpawnBesideChance(square)
-    local chance = WorldSpawn.SpawnBesideChance or 0
+    local baseChance = WorldSpawn.SpawnBesideChance or 0
+    local matchedChance = nil
     local locationText = getLocationText(square)
 
     for keyword, keywordChance in pairs(WorldSpawn.SpawnChanceByRoomKeyword) do
-        if containsKeyword(locationText, keyword) and keywordChance and keywordChance > chance then
-            chance = keywordChance
+        if containsKeyword(locationText, keyword) and keywordChance then
+            if not matchedChance or keywordChance > matchedChance then
+                matchedChance = keywordChance
+            end
         end
     end
 
-    return chance
+    return matchedChance or baseChance
 end
 
 local function isValidAdjacentSquare(sourceSquare, testSquare)
@@ -571,6 +633,8 @@ local function spawnBesideObject(square, oldSprite, newSprite)
 end
 
 local function scanSquare(square)
+    applySandboxOptions()
+
     if not WorldSpawn.Enabled or not square then
         return
     end

@@ -1,0 +1,99 @@
+VERSION = 1,
+
+option AshboroCigaretteVending.EnableWorldSpawns
+{
+    type = boolean,
+    default = true,
+    page = AshboroCigaretteVending,
+    translation = AshboroCigaretteVending_EnableWorldSpawns,
+}
+
+option AshboroCigaretteVending.BaseSpawnChance
+{
+    type = integer,
+    min = 0,
+    max = 100,
+    default = 35,
+    page = AshboroCigaretteVending,
+    translation = AshboroCigaretteVending_BaseSpawnChance,
+}
+
+option AshboroCigaretteVending.ReplaceChance
+{
+    type = integer,
+    min = 0,
+    max = 100,
+    default = 0,
+    page = AshboroCigaretteVending,
+    translation = AshboroCigaretteVending_ReplaceChance,
+}
+
+option AshboroCigaretteVending.BarSpawnChance
+{
+    type = integer,
+    min = 0,
+    max = 100,
+    default = 55,
+    page = AshboroCigaretteVending,
+    translation = AshboroCigaretteVending_BarSpawnChance,
+}
+
+option AshboroCigaretteVending.LiquorSpawnChance
+{
+    type = integer,
+    min = 0,
+    max = 100,
+    default = 65,
+    page = AshboroCigaretteVending,
+    translation = AshboroCigaretteVending_LiquorSpawnChance,
+}
+
+option AshboroCigaretteVending.GasSpawnChance
+{
+    type = integer,
+    min = 0,
+    max = 100,
+    default = 45,
+    page = AshboroCigaretteVending,
+    translation = AshboroCigaretteVending_GasSpawnChance,
+}
+
+option AshboroCigaretteVending.ConvenienceSpawnChance
+{
+    type = integer,
+    min = 0,
+    max = 100,
+    default = 45,
+    page = AshboroCigaretteVending,
+    translation = AshboroCigaretteVending_ConvenienceSpawnChance,
+}
+
+option AshboroCigaretteVending.MarketSpawnChance
+{
+    type = integer,
+    min = 0,
+    max = 100,
+    default = 40,
+    page = AshboroCigaretteVending,
+    translation = AshboroCigaretteVending_MarketSpawnChance,
+}
+
+option AshboroCigaretteVending.GrocerySpawnChance
+{
+    type = integer,
+    min = 0,
+    max = 100,
+    default = 35,
+    page = AshboroCigaretteVending,
+    translation = AshboroCigaretteVending_GrocerySpawnChance,
+}
+
+option AshboroCigaretteVending.StoreSpawnChance
+{
+    type = integer,
+    min = 0,
+    max = 100,
+    default = 30,
+    page = AshboroCigaretteVending,
+    translation = AshboroCigaretteVending_StoreSpawnChance,
+}
