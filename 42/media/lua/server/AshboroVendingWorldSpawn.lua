@@ -5,8 +5,30 @@ local WorldSpawn = CigaretteVending.WorldSpawn
 
 WorldSpawn.Enabled = WorldSpawn.Enabled ~= false
 WorldSpawn.Debug = WorldSpawn.Debug == true
-WorldSpawn.SpawnBesideChance = WorldSpawn.SpawnBesideChance or 35
+WorldSpawn.SpawnBesideChance = WorldSpawn.SpawnBesideChance or 30
 WorldSpawn.ReplaceChance = WorldSpawn.ReplaceChance or 0
+
+-- Per-location tuning. These keep the mod flavorful without turning every soda machine into Ashboro.
+-- The names are intentionally fuzzy because room/zone names vary between vanilla, maps, and B42 updates.
+WorldSpawn.SpawnChanceByRoomKeyword = WorldSpawn.SpawnChanceByRoomKeyword or {
+    bar = 55,
+    liquor = 65,
+    gas = 45,
+    convenience = 45,
+    market = 40,
+    grocery = 35,
+    store = 30,
+}
+
+-- Hard no-spawn areas. If a room/zone/building name contains one of these, Ashboro skips it.
+WorldSpawn.NoSpawnRoomKeywords = WorldSpawn.NoSpawnRoomKeywords or {
+    school = true,
+    classroom = true,
+    daycare = true,
+    nursery = true,
+    kindergarten = true,
+}
+
 WorldSpawn.ProcessedFlag = WorldSpawn.ProcessedFlag or "AshboroCigsChecked"
 WorldSpawn.ObjectProcessedFlag = WorldSpawn.ObjectProcessedFlag or "AshboroCigsObjectChecked"
 
@@ -64,6 +86,42 @@ local function rollChance(chance)
     return ZombRand(100) < chance
 end
 
+local function getRandomCount(min, max)
+    if max <= min then
+        return min
+    end
+
+    return min + ZombRand((max - min) + 1)
+end
+
+local function pickAshboroStockProfile()
+    local roll = ZombRand(100)
+
+    if roll < 20 then
+        return "empty", 0, 0
+    elseif roll < 70 then
+        return "low", 1, 3
+    elseif roll < 95 then
+        return "normal", 4, 8
+    end
+
+    return "well stocked", 9, 14
+end
+
+local function addAshboroBonusItem(container, cigaretteCount)
+    if cigaretteCount <= 0 then
+        return
+    end
+
+    local roll = ZombRand(100)
+
+    if roll < 12 then
+        container:AddItem("Base.Matches")
+    elseif roll < 18 then
+        container:AddItem("Base.Lighter")
+    end
+end
+
 local function fillAshboroContainer(container)
     if not container then
         return
@@ -73,22 +131,15 @@ local function fillAshboroContainer(container)
         return
     end
 
-    local cigaretteCount = 1 + ZombRand(4)
+    local stockProfile, minPacks, maxPacks = pickAshboroStockProfile()
+    local cigaretteCount = getRandomCount(minPacks, maxPacks)
+
     for _ = 1, cigaretteCount do
         container:AddItem("Base.CigarettePack")
     end
 
-    if ZombRand(100) < 35 then
-        container:AddItem("Base.Lighter")
-    end
-
-    if ZombRand(100) < 45 then
-        container:AddItem("Base.Matches")
-    end
-
-    if ZombRand(100) < 20 then
-        container:AddItem("Base.Money")
-    end
+    addAshboroBonusItem(container, cigaretteCount)
+    debugLog("Filled Ashboro vending stock", stockProfile, "packs=", tostring(cigaretteCount))
 
     container:setExplored(true)
 end
@@ -252,6 +303,97 @@ local function safeSquareBool(square, methodName, ...)
 
     local ok, result = pcall(square[methodName], square, ...)
     return ok and result or false
+end
+
+
+local function lowerText(value)
+    if value == nil then
+        return nil
+    end
+    return string.lower(tostring(value))
+end
+
+local function appendText(parts, value)
+    local text = lowerText(value)
+    if text and text ~= "" then
+        table.insert(parts, text)
+    end
+end
+
+local function callNoArg(obj, methodName)
+    if not obj or not obj[methodName] then
+        return nil
+    end
+
+    local ok, result = pcall(obj[methodName], obj)
+    if ok then
+        return result
+    end
+
+    return nil
+end
+
+local function getLocationText(square)
+    local parts = {}
+
+    local room = callNoArg(square, "getRoom")
+    if room then
+        appendText(parts, callNoArg(room, "getName"))
+        appendText(parts, callNoArg(room, "getRoomName"))
+
+        local roomDef = callNoArg(room, "getRoomDef") or callNoArg(room, "getDef")
+        if roomDef then
+            appendText(parts, callNoArg(roomDef, "getName"))
+            appendText(parts, callNoArg(roomDef, "getRoomName"))
+        end
+    end
+
+    local building = callNoArg(square, "getBuilding")
+    if building then
+        appendText(parts, callNoArg(building, "getName"))
+        local buildingDef = callNoArg(building, "getDef")
+        if buildingDef then
+            appendText(parts, callNoArg(buildingDef, "getName"))
+        end
+    end
+
+    local zone = callNoArg(square, "getZone")
+    if zone then
+        appendText(parts, callNoArg(zone, "getName"))
+        appendText(parts, callNoArg(zone, "getType"))
+    end
+
+    return table.concat(parts, " ")
+end
+
+local function containsKeyword(text, keyword)
+    return text and keyword and string.find(text, string.lower(tostring(keyword)), 1, true) ~= nil
+end
+
+local function isNoSpawnLocation(square)
+    local locationText = getLocationText(square)
+
+    for keyword, enabled in pairs(WorldSpawn.NoSpawnRoomKeywords) do
+        if enabled and containsKeyword(locationText, keyword) then
+            debugLog("Skipping no-spawn location", keyword, "at", square:getX(), square:getY(), square:getZ(), locationText)
+            return true
+        end
+    end
+
+    return false
+end
+
+local function getEffectiveSpawnBesideChance(square)
+    local chance = WorldSpawn.SpawnBesideChance or 0
+    local locationText = getLocationText(square)
+
+    for keyword, keywordChance in pairs(WorldSpawn.SpawnChanceByRoomKeyword) do
+        if containsKeyword(locationText, keyword) and keywordChance and keywordChance > chance then
+            chance = keywordChance
+        end
+    end
+
+    return chance
 end
 
 local function isValidAdjacentSquare(sourceSquare, testSquare)
@@ -467,7 +609,14 @@ local function scanSquare(square)
                 obj:getModData()[WorldSpawn.ObjectProcessedFlag] = true
             end
 
-            if rollChance(WorldSpawn.SpawnBesideChance) then
+            if isNoSpawnLocation(square) then
+                return
+            end
+
+            local effectiveSpawnBesideChance = getEffectiveSpawnBesideChance(square)
+            debugLog("Effective spawn chance", tostring(effectiveSpawnBesideChance), "for", spriteName, "at", square:getX(), square:getY(), square:getZ(), getLocationText(square))
+
+            if rollChance(effectiveSpawnBesideChance) then
                 if spawnBesideObject(square, spriteName, newSprite) then
                     return
                 end
