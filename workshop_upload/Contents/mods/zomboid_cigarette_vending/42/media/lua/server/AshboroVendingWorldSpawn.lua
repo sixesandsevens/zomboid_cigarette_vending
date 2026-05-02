@@ -355,6 +355,25 @@ local function squareHasVending(square)
     return false
 end
 
+local function findVanillaVendingObject(square)
+    local objects = square and square:getObjects()
+    if not objects then
+        return nil, nil, nil
+    end
+
+    for i = objects:size() - 1, 0, -1 do
+        local obj = objects:get(i)
+        local spriteName = getSpriteName(obj)
+        local newSprite = spriteName and WorldSpawn.Replacements[spriteName] or nil
+
+        if newSprite then
+            return obj, spriteName, newSprite
+        end
+    end
+
+    return nil, nil, nil
+end
+
 local function safeSquareBool(square, methodName, ...)
     if not square or not square[methodName] then
         return false
@@ -502,6 +521,67 @@ local function getOffsetSquare(square, offset)
     return cell:getGridSquare(square:getX() + offset.x, square:getY() + offset.y, square:getZ())
 end
 
+local function getSquareKey(square)
+    return tostring(square:getX()) .. "," .. tostring(square:getY()) .. "," .. tostring(square:getZ())
+end
+
+local function getVendingCluster(startSquare)
+    local cluster = {}
+    local queue = {}
+    local visited = {}
+
+    if not startSquare or not squareHasVending(startSquare) then
+        return cluster
+    end
+
+    table.insert(queue, startSquare)
+    visited[getSquareKey(startSquare)] = true
+
+    while #queue > 0 do
+        local square = table.remove(queue, 1)
+        table.insert(cluster, square)
+
+        for _, dir in ipairs(AdjacentDirections) do
+            local nextSquare = getOffsetSquare(square, dir)
+            if nextSquare and squareHasVending(nextSquare) then
+                local key = getSquareKey(nextSquare)
+                if not visited[key] then
+                    visited[key] = true
+                    table.insert(queue, nextSquare)
+                end
+            end
+        end
+    end
+
+    return cluster
+end
+
+local function vendingClusterWasProcessed(cluster)
+    for _, clusterSquare in ipairs(cluster) do
+        if clusterSquare:getModData()[WorldSpawn.ProcessedFlag] then
+            return true
+        end
+
+        local obj = findVanillaVendingObject(clusterSquare)
+        if obj and obj.getModData and obj:getModData()[WorldSpawn.ObjectProcessedFlag] then
+            return true
+        end
+    end
+
+    return false
+end
+
+local function markVendingClusterProcessed(cluster)
+    for _, clusterSquare in ipairs(cluster) do
+        clusterSquare:getModData()[WorldSpawn.ProcessedFlag] = true
+
+        local obj = findVanillaVendingObject(clusterSquare)
+        if obj and obj.getModData then
+            obj:getModData()[WorldSpawn.ObjectProcessedFlag] = true
+        end
+    end
+end
+
 local function isBlockedByWallOrRoom(sourceSquare, testSquare)
     if not sourceSquare or not testSquare then
         return true
@@ -590,8 +670,21 @@ local function getAdjacentSquares(square)
     return results
 end
 
-local function pickAdjacentSquare(square)
-    local candidates = getAdjacentSquares(square)
+local function pickClusterAdjacentSquare(cluster)
+    local candidates = {}
+    local seen = {}
+
+    for _, clusterSquare in ipairs(cluster) do
+        local adjacentSquares = getAdjacentSquares(clusterSquare)
+        for _, adjacentSquare in ipairs(adjacentSquares) do
+            local key = getSquareKey(adjacentSquare)
+            if not seen[key] then
+                seen[key] = true
+                table.insert(candidates, adjacentSquare)
+            end
+        end
+    end
+
     if #candidates == 0 then
         return nil
     end
@@ -599,16 +692,16 @@ local function pickAdjacentSquare(square)
     return candidates[ZombRand(#candidates) + 1]
 end
 
-local function spawnBesideObject(square, oldSprite, newSprite)
-    local targetSquare = pickAdjacentSquare(square)
+local function spawnBesideCluster(cluster, sourceSquare, oldSprite, newSprite)
+    local targetSquare = pickClusterAdjacentSquare(cluster)
     if not targetSquare then
         debugLog(
-            "No valid adjacent square for Ashboro machine near",
+            "No valid adjacent square for Ashboro machine near vending cluster",
             oldSprite,
             "at",
-            square:getX(),
-            square:getY(),
-            square:getZ()
+            sourceSquare:getX(),
+            sourceSquare:getY(),
+            sourceSquare:getZ()
         )
         return false
     end
@@ -619,7 +712,7 @@ local function spawnBesideObject(square, oldSprite, newSprite)
     end
 
     debugLog(
-        "Spawned Ashboro vending machine beside",
+        "Spawned Ashboro vending machine beside vending cluster",
         oldSprite,
         "using",
         newSprite,
@@ -644,54 +737,54 @@ local function scanSquare(square)
         return
     end
 
-    for i = objects:size() - 1, 0, -1 do
-        local obj = objects:get(i)
-        local spriteName = getSpriteName(obj)
-        local newSprite = spriteName and WorldSpawn.Replacements[spriteName] or nil
+    local obj, spriteName, newSprite = findVanillaVendingObject(square)
+    if not newSprite then
+        return
+    end
 
-        if newSprite then
-            if obj.getModData and obj:getModData()[WorldSpawn.ObjectProcessedFlag] then
-                return
-            end
+    debugLog(
+        "Found vanilla vending machine",
+        spriteName,
+        "at",
+        square:getX(),
+        square:getY(),
+        square:getZ()
+    )
 
-            debugLog(
-                "Found vanilla vending machine",
-                spriteName,
-                "at",
-                square:getX(),
-                square:getY(),
-                square:getZ()
-            )
+    local cluster = getVendingCluster(square)
+    if vendingClusterWasProcessed(cluster) then
+        return
+    end
 
-            local md = square:getModData()
-            if md[WorldSpawn.ProcessedFlag] then
-                return
-            end
+    markVendingClusterProcessed(cluster)
 
-            md[WorldSpawn.ProcessedFlag] = true
-            if obj.getModData then
-                obj:getModData()[WorldSpawn.ObjectProcessedFlag] = true
-            end
+    if isNoSpawnLocation(square) then
+        return
+    end
 
-            if isNoSpawnLocation(square) then
-                return
-            end
+    local effectiveSpawnBesideChance = getEffectiveSpawnBesideChance(square)
+    debugLog(
+        "Effective spawn chance",
+        tostring(effectiveSpawnBesideChance),
+        "for",
+        spriteName,
+        "clusterSize=",
+        tostring(#cluster),
+        "at",
+        square:getX(),
+        square:getY(),
+        square:getZ(),
+        getLocationText(square)
+    )
 
-            local effectiveSpawnBesideChance = getEffectiveSpawnBesideChance(square)
-            debugLog("Effective spawn chance", tostring(effectiveSpawnBesideChance), "for", spriteName, "at", square:getX(), square:getY(), square:getZ(), getLocationText(square))
-
-            if rollChance(effectiveSpawnBesideChance) then
-                if spawnBesideObject(square, spriteName, newSprite) then
-                    return
-                end
-            end
-
-            if rollChance(WorldSpawn.ReplaceChance) then
-                replaceObject(square, obj, spriteName, newSprite)
-            end
-
+    if rollChance(effectiveSpawnBesideChance) then
+        if spawnBesideCluster(cluster, square, spriteName, newSprite) then
             return
         end
+    end
+
+    if rollChance(WorldSpawn.ReplaceChance) then
+        replaceObject(square, obj, spriteName, newSprite)
     end
 end
 
