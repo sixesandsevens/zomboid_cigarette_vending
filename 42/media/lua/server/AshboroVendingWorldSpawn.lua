@@ -282,27 +282,104 @@ local function isValidAdjacentSquare(sourceSquare, testSquare)
     return true
 end
 
-local function getAdjacentSquares(square)
+local AdjacentDirections = {
+    { name = "east", x = 1, y = 0, axis = "x" },
+    { name = "west", x = -1, y = 0, axis = "x" },
+    { name = "south", x = 0, y = 1, axis = "y" },
+    { name = "north", x = 0, y = -1, axis = "y" },
+}
+
+local function getOffsetSquare(square, offset)
     local cell = getCell()
-    if not cell or not square then
+    if not cell or not square or not offset then
+        return nil
+    end
+
+    return cell:getGridSquare(square:getX() + offset.x, square:getY() + offset.y, square:getZ())
+end
+
+local function isBlockedByWallOrRoom(sourceSquare, testSquare)
+    if not sourceSquare or not testSquare then
+        return true
+    end
+
+    if testSquare:getZ() ~= sourceSquare:getZ() then
+        return true
+    end
+
+    if sourceSquare.getRoom and testSquare.getRoom and sourceSquare:getRoom() ~= testSquare:getRoom() then
+        return true
+    end
+
+    if safeSquareBool(testSquare, "isSolid") or safeSquareBool(testSquare, "isSolidTrans") then
+        return true
+    end
+
+    return false
+end
+
+local function getPreferredAdjacentAxes(square)
+    local hasVendingOnX = false
+    local hasVendingOnY = false
+    local blockedOnX = false
+    local blockedOnY = false
+
+    for _, dir in ipairs(AdjacentDirections) do
+        local testSquare = getOffsetSquare(square, dir)
+
+        if squareHasVending(testSquare) then
+            if dir.axis == "x" then
+                hasVendingOnX = true
+            else
+                hasVendingOnY = true
+            end
+        end
+
+        if isBlockedByWallOrRoom(square, testSquare) then
+            if dir.axis == "x" then
+                blockedOnX = true
+            else
+                blockedOnY = true
+            end
+        end
+    end
+
+    -- If the vanilla vending machines already form a row, extend that row.
+    -- This prevents a machine beside every vanilla machine from becoming a machine in front of every vanilla machine.
+    if hasVendingOnX and not hasVendingOnY then
+        return { x = true }
+    end
+    if hasVendingOnY and not hasVendingOnX then
+        return { y = true }
+    end
+
+    -- If one axis is blocked by a wall/room boundary, the other axis is usually the left/right side of the machine.
+    -- Example: vending machine against a north/south wall => do not use the open floor tile in front of it.
+    if blockedOnY and not blockedOnX then
+        return { x = true }
+    end
+    if blockedOnX and not blockedOnY then
+        return { y = true }
+    end
+
+    -- Freestanding/ambiguous vending machine. Be conservative: skip it rather than blocking the front.
+    return {}
+end
+
+local function getAdjacentSquares(square)
+    if not square then
         return {}
     end
 
-    local x = square:getX()
-    local y = square:getY()
-    local z = square:getZ()
-    local offsets = {
-        { x = 1, y = 0 },
-        { x = -1, y = 0 },
-        { x = 0, y = 1 },
-        { x = 0, y = -1 },
-    }
+    local preferredAxes = getPreferredAdjacentAxes(square)
     local results = {}
 
-    for _, offset in ipairs(offsets) do
-        local testSquare = cell:getGridSquare(x + offset.x, y + offset.y, z)
-        if isValidAdjacentSquare(square, testSquare) then
-            table.insert(results, testSquare)
+    for _, dir in ipairs(AdjacentDirections) do
+        if preferredAxes[dir.axis] then
+            local testSquare = getOffsetSquare(square, dir)
+            if isValidAdjacentSquare(square, testSquare) then
+                table.insert(results, testSquare)
+            end
         end
     end
 
