@@ -5,4 +5,4 @@ version=1.0
 loader=java
 dependencies=Base
 pack=cigarette_vending_ashboro
-tiledef=newtiledefinitions 2000
+tiledef=ashboro_cigarette_vending 689

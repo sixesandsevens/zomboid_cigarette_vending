@@ -21,7 +21,7 @@ Released, evolving.
 ## Compatibility
 
 - Target: Project Zomboid Build 42
-- Uses `tiledef=newtiledefinitions 2000` and `pack=cigarette_vending_ashboro`
+- Uses `tiledef=ashboro_cigarette_vending 689` and `pack=cigarette_vending_ashboro`
 
 ## Project Layout
 

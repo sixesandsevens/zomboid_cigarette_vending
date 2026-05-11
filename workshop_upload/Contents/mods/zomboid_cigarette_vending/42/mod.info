@@ -6,4 +6,4 @@ loader=java
 dependencies=Base
 poster=poster.png
 pack=cigarette_vending_ashboro
-tiledef=newtiledefinitions 2000
+tiledef=ashboro_cigarette_vending 689
